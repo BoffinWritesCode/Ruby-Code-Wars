@@ -5,20 +5,20 @@
 def get_interesting(number, awesome_phrases)
     num_s = number.to_s
     chars = num_s.chars
-        return false if number < 100
-        # a digit followed by zeroes
+    return false if number < 100
+    # a digit followed by zeroes
     return true if chars.count("0") == chars.length - 1
-        #all same
+    #all same
     return true if chars.uniq.length <= 1
-        #all sequential incrementing
+    #all sequential incrementing
     return true if chars.select.with_index { |c, i| i == 0 || chars[i].to_i == (chars[i-1].to_i + 1) % 10 }.length == chars.length
-        #all sequential decrementing
+    #all sequential decrementing
     return true if chars.select.with_index { |c, i| i == 0 || chars[i].to_i == chars[i-1].to_i - 1 }.length == chars.length
-        #palindromic
+    #palindromic
     return true if num_s.reverse == num_s
-        #in phrases
+    #in phrases
     return true if awesome_phrases.include?(number)
-        false
+    false
 end
 
 def is_interesting(number, awesome_phrases)
@@ -311,5 +311,126 @@ class Calculator
         else
             0
         end
+    end
+end
+
+# https://www.codewars.com/kata/52a78825cdfc2cfc87000005
+# 2 kyu, writing a full calculator that can take any sort of mathematical input string! (with limited operators)
+# based on my previous version, for the calculator with specific inputs
+# -----------------------------------------------------------------
+
+
+# http://rosettacode.org/wiki/Determine_if_a_string_is_numeric#Ruby
+class String
+    def numeric?
+        Float(self) != nil rescue false
+    end
+end
+  
+def calc(string)
+    # get the infix string in postfix form, as an array of values to loop through
+    parts = convertIntoParts(string)
+    postfix = convertToPostfix(parts)
+    # puts postfix.join(', ')
+    stack = []
+    # for each value in the postfix array
+    postfix.each { |c| 
+        # if it's a number, push to stack
+        if c.numeric?
+            stack.push(c.to_f)
+        else 
+            # otherwise, pop last two values from the stack and do calculation on them
+            # then push that value back onto the stack
+            a = stack.pop().to_f
+            if c == "#"
+                stack.push(-a)
+            else
+                b = stack.pop().to_f
+                case c
+                when "+"
+                    stack.push(b + a)
+                when "-"
+                    stack.push(b - a)
+                when "*"
+                    stack.push(b * a)
+                when "/"
+                    stack.push(b / a)
+                end
+            end
+            # puts stack[-1]
+        end
+    }
+    return stack.pop()
+end
+  
+def convertIntoParts(string)
+    # remove all whitespace
+    trimmed = string.gsub(/[[:space:]]/, '')
+    # puts trimmed
+    parts = []
+    currentValue = ""
+    trimmed.chars.each { |char|
+        # if the character is a digit or a decimal point, add to current value
+        # or if this character is a - and the previous character was a - also or there's no previous character
+        if char.match?(/[[:digit:]]|\./)
+            currentValue += char
+        # - symbols that are designed to negate a number (as in, subtract from 0) are replaced with a # symbol
+        elsif (char == "-" and isNegatingDash(currentValue, parts))
+            parts.push("#")
+        else
+            if currentValue.length() > 0
+                parts.push(currentValue)
+                currentValue = ""
+            end
+            parts.push(char)
+        end
+    }
+    parts.push(currentValue) if currentValue.length() > 0
+    # puts parts.join(', ')
+    return parts
+end
+
+def isNegatingDash(currentValue, parts)
+    currentValue.length() == 0 and (parts.length() == 0 or not (parts[-1].numeric? or parts[-1] == ")"))
+end
+  
+def convertToPostfix(parts)
+    # implemention based on pseudocode from: 
+    # https://www.tutorialspoint.com/Convert-Infix-to-Postfix-Expression
+    stack = ['@']
+    postfix = []
+    parts.each { |c|
+        if c.numeric?
+            postfix.push(c)
+        elsif c == '('
+            stack.push('(')
+        elsif c == ')'
+            while stack[-1] != '@' and stack[-1] != '(' do
+                postfix.push(stack.pop())
+            end
+            stack.pop()
+        else
+            while stack[-1] != '@' and operatorPrecedence(c) <= operatorPrecedence(stack[-1]) do
+                postfix.push(stack.pop())
+            end
+            stack.push(c)
+        end
+    }
+    while stack[-1] != '@' do
+        postfix.push(stack.pop())
+    end
+    return postfix
+end
+  
+def operatorPrecedence(op)
+    case op
+    when "+", "-"
+        1
+    when "*", "/"
+        2
+    when "#"
+        3
+    else
+        0
     end
 end
