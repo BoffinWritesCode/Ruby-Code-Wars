@@ -1,3 +1,11 @@
+#
+
+# These are my Ruby Code Wars solutions for different Kata I've completed.
+# Not all of the Kata I have completed are here, just the harder ones.
+# My Code Wars account can be found here: https://www.codewars.com/users/BoffinWritesCode
+
+#
+
 # https://www.codewars.com/kata/52c4dd683bfd3b434c000292
 # 4 kyu challenge
 # -----------------------------------------------------------------
