@@ -36,19 +36,27 @@ end
 
 def sum_of_intervals(intervals)
 	ranges = []
+    # for each interval
 	intervals.each { |arr| 
+        # get the range
 		range = arr[0]..arr[1]
+        # calculate any overlaps, by selecting ranges which overlap with this range
 		overlaps = ranges.select{ |r| !(r.first > range.last || r.last < range.first) }
+        # if any overlaps
 		if overlaps.length > 0 then
+            # remove the overlaps from the list of ranges
 			ranges -= overlaps
+            # get the new range, based on the overlap
 			overlaps.push(range)
 			min = overlaps.map(&:first).min
 			max = overlaps.map(&:last).max
 			range = min..max
 		end
-				ranges.push(range)
+        # push the range
+        ranges.push(range)
 	}
-		ranges.sum { |r| r.last - r.first }
+    # get the sum of all ranges
+    ranges.sum { |r| r.last - r.first }
 end
 
 # https://www.codewars.com/kata/5a25ac6ac5e284cfbe000111
@@ -61,14 +69,15 @@ end
 
 def next_row(row, length)
 	return row[0] if length == 1
-		length.times { |i| 
-		crt = row[i]
-		nxt = row[i + 1]
-		row[i] = crt == nxt ? crt : get_next(crt, nxt)
+    length.times { |i| 
+		current = row[i]
+		next = row[i + 1]
+		row[i] = current == next ? current : get_next(current, next)
 	}
 	next_row(row, length - 1)
 end
 
+# horrid function, but gets the correct letter based on a's value and b's value
 def get_next(a, b)
 	case a
 	when "R"
@@ -137,7 +146,6 @@ end
 # -----------------------------------------------------------------
 
 def decodeMorse(morseCode)
-	#your brilliant code here
 	morseCode.strip.split('   ').map { |word|
 		word.split(' ').map { |morse_seq| MORSE_CODE[morse_seq] }.join
 	}.join(' ')
@@ -146,3 +154,86 @@ end
 # https://www.codewars.com/kata/52742f58faf5485cae000b9a 
 # 4 kyu challenge
 # -----------------------------------------------------------------
+
+def format_duration(seconds)
+    return "now" if seconds == 0
+    
+    components = { 
+      "year" => (seconds / 31536000).floor,
+      "day" => (seconds / 86400).floor % 365,
+      "hour" => (seconds / 3600).floor % 24,
+      "minute" => (seconds / 60).floor % 60,
+      "second" => seconds % 60 
+    }
+    
+    final = []
+    prev = false
+    
+    components.each { |k, v|
+      next if v <= 0
+      final.push(v.to_s + " " + k + (v > 1 ? "s" : ""))
+    }
+    
+    result = ""
+    
+    final.each.with_index { |f, i| 
+      preValue = i > 0 ? (i == final.length - 1 ? " and " : ", ") : ""
+      result += preValue + f
+    }
+    
+    result
+end
+
+# https://www.codewars.com/kata/529bf0e9bdf7657179000008
+# 4 kyu challenge
+# -----------------------------------------------------------------
+
+def validSolution(board)
+    #check rows
+    board.each { |row| return false if row.uniq.length != row.length || row.index(0) }
+
+    #check columns and add to grids
+    grids = [[], [], [], [], [], [], [], [], []]
+    9.times { |x|
+        column = []
+        9.times { |y|
+            return false if board[y][x] == 0
+            
+            column.push(board[y][x])
+            
+            grid_index = (y / 3).floor * 3 + (x / 3).floor
+            grids[grid_index].push(board[y][x])
+        }
+        return false if column.uniq.length != column.length
+    }
+    grids.each { |grid| return false if grid.uniq.length != grid.length }
+    true
+end
+
+# https://www.codewars.com/kata/51c8e37cee245da6b40000bd
+# 4 kyu challenge
+# -----------------------------------------------------------------
+
+def solution(input, markers)
+    input.split("\n").map { |line| line.gsub(/[#{markers.join}].*/, '').strip }.join("\n")
+end
+
+# https://www.codewars.com/kata/55983863da40caa2c900004e
+# 4 kyu challenge
+# -----------------------------------------------------------------
+
+def next_bigger(n)
+    current = []
+    done = false
+    n.to_s.chars.reverse.each { |c| 
+        current.prepend(c.to_i)
+        next if done || current.sort.reverse == current
+        currentMapped = current.map(&:to_s)
+        permutations = currentMapped.permutation.map(&:join).map(&:to_i).uniq.sort
+        curValue = currentMapped.join.to_i
+        current = permutations.fetch(permutations.index(curValue) + 1, curValue).to_s.split('').map(&:to_i)
+        done = true
+    }
+    value = current.join.to_i
+    value == n ? -1 : value
+end
