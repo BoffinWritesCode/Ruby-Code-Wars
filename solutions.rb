@@ -237,3 +237,79 @@ def next_bigger(n)
     value = current.join.to_i
     value == n ? -1 : value
 end
+
+# https://www.codewars.com/kata/5235c913397cbf2508000048
+# this is now retired, but I believe it was 3 kyu when I first attempted it months ago.
+# -----------------------------------------------------------------
+
+class Calculator
+    def evaluate(string)
+        # get the infix string in postfix form, as an array of values to loop through
+        postfix = convertToPostfix(string)
+        stack = []
+        # for each value in the postfix array
+        postfix.each { |c| 
+        # if it's a number, push to stack
+        if c.match?(/[[:digit:]]/)
+            stack.push(c.to_i)
+        else 
+            # otherwise, pop last two values from the stack and do calculation on them
+            # then push that value back onto the stack
+            a = stack.pop().to_f
+            b = stack.pop().to_f
+            case c
+            when "+"
+                stack.push(b + a)
+            when "-"
+                stack.push(b - a)
+            when "*"
+                stack.push(b * a)
+            when "/"
+                stack.push(b / a)
+            end
+        end
+        }
+        return stack.pop()
+    end
+    
+    def convertToPostfix(infixExpression)
+        # implemention based on pseudocode from: 
+        # https://www.tutorialspoint.com/Convert-Infix-to-Postfix-Expression
+        stack = ['@']
+        parts = infixExpression.split
+        postfix = []
+        parts.each { |c|
+            if c.match?(/[[:digit:]]/)
+                postfix.push(c)
+            elsif c == '('
+                stack.push('(')
+            elsif c == ')'
+                while stack[-1] != '@' and stack[-1] != '(' do
+                    postfix.push(stack.pop())
+                end
+                stack.pop()
+            else
+                while stack[-1] != '@' and operatorPrecedence(c) <= operatorPrecedence(stack[-1]) do
+                    postfix.push(stack.pop())
+                end
+                
+                stack.push(c)
+            end
+        }
+        while stack[-1] != '@' do
+            postfix.push(stack.pop())
+        end
+        return postfix
+    end
+      
+    def operatorPrecedence(op)
+        case op
+        when "+", "-"
+            1
+        when "*", "/"
+            2
+        else
+            0
+        end
+    end
+end
